@@ -205,18 +205,18 @@
         const appLink = document.getElementById('appLink');
 
         if (!placeId) {
-            statusEl.innerHTML = '❌ Error: Missing placeId in URL!<br>Example: ?placeId=920587237&jobId=your-server-id';
+            statusEl.innerHTML = '❌ Error: Missing placeId in URL!<br>Example: /joiner?placeId=920587237&gameInstanceId=your-server-id';
             webJoinBtn.disabled = true;
             appJoinBtn.disabled = true;
         } else if (!jobId) {
-            statusEl.innerHTML = '❌ Error: Missing jobId (server ID) in URL!<br>This page requires a specific server ID to join.<br><br>Example: ?placeId=920587237&jobId=your-server-id';
+            statusEl.innerHTML = '❌ Error: Missing server ID in URL!<br>This page requires a specific server ID to join.<br><br>Example: /joiner?placeId=920587237&gameInstanceId=your-server-id';
             webJoinBtn.disabled = true;
             appJoinBtn.disabled = true;
         } else {
             statusEl.innerHTML = `✅ Server Found!<br><br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}<br><br>Click a button above to join the specific server.`;
             
-            // Create URLs
-            const webJoinUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
+            // Create URLs - Using the correct format from your example
+            const webJoinUrl = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${jobId}`;
             const appJoinUrl = `roblox://placeId=${placeId}&gameInstanceId=${jobId}`;
             const teleportScript = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${jobId}")`;
             
