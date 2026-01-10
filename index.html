@@ -9,8 +9,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacOSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #e0e0ff;
+            background: linear-gradient(135deg, #1a0033, #3c1a5e, #2a1247);
+            color: #e0d4ff;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -19,74 +19,96 @@
             padding: 20px;
             text-align: center;
         }
+        .logo-container {
+            margin-bottom: 1.5rem;
+        }
+        .logo {
+            width: 140px;
+            height: 140px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(180, 100, 255, 0.7));
+            border-radius: 50%;
+            border: 3px solid rgba(180, 100, 255, 0.4);
+        }
         h1 {
-            font-size: 2.8rem;
-            margin-bottom: 1rem;
-            color: #00ff9d;
-            text-shadow: 0 0 15px rgba(0, 255, 157, 0.6);
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            color: #b064ff;
+            text-shadow: 0 0 20px rgba(176, 100, 255, 0.7);
+            letter-spacing: 1px;
         }
         p.subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
+            font-size: 1.3rem;
+            margin-bottom: 2.2rem;
             opacity: 0.9;
+            color: #d0b8ff;
         }
         .btn {
-            background: #00ff9d;
-            color: #000;
+            background: #b064ff;
+            color: white;
             border: none;
-            padding: 16px 40px;
-            font-size: 1.3rem;
+            padding: 16px 48px;
+            font-size: 1.35rem;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 255, 157, 0.4);
-            margin: 1.5rem 0;
+            transition: all 0.35s ease;
+            box-shadow: 0 8px 30px rgba(176, 100, 255, 0.5);
+            margin: 1.8rem 0;
         }
         .btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 35px rgba(0, 255, 157, 0.6);
-            background: #00e88a;
+            transform: translateY(-5px);
+            box-shadow: 0 14px 40px rgba(176, 100, 255, 0.7);
+            background: #9b4eff;
         }
         #status {
             font-size: 1.1rem;
-            margin: 1.5rem 0;
-            padding: 12px 20px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 12px;
+            margin: 1.6rem 0;
+            padding: 14px 24px;
+            background: rgba(180, 100, 255, 0.12);
+            border: 1px solid rgba(176, 100, 255, 0.25);
+            border-radius: 14px;
             max-width: 90%;
+            color: #d4c2ff;
         }
         .brand {
-            margin-top: 2rem;
+            margin-top: 2.5rem;
             font-size: 0.95rem;
-            opacity: 0.7;
+            opacity: 0.6;
+            color: #b080ff;
         }
         .brand a {
-            color: #00ff9d;
+            color: #c090ff;
             text-decoration: none;
         }
         @media (max-width: 600px) {
-            h1 { font-size: 2.2rem; }
-            .btn { padding: 14px 30px; font-size: 1.1rem; }
+            h1 { font-size: 2.4rem; }
+            .logo { width: 110px; height: 110px; }
+            .btn { padding: 14px 36px; font-size: 1.2rem; }
         }
     </style>
 </head>
 <body>
+    <div class="logo-container">
+        <img src="https://cdn.discordapp.com/attachments/1443240422511218748/1459548325261873257/824780bf5f751ce0c4b097355431c2e9.png?ex=6963adcd&is=69625c4d&hm=ac1c56b7b0c3be551ec35de339ec6ee5de35c731e73879985670cbbd52f72582&" 
+             alt="Rayz Hub Logo" class="logo">
+    </div>
+
     <h1>Rayz Hub</h1>
     <p class="subtitle">Instant Adopt Me Server Joiner</p>
 
     <button class="btn" id="joinBtn">Join Server Now 🚀</button>
+
     <div id="status">Loading parameters...</div>
 
     <div class="brand">
-        made by rayz hub we just lowkey better then fucking lynx get better 9 year olds HAHA
+        made by rayz hub • we just lowkey better than fucking lynx get better 9 year olds HAHA
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const placeId = urlParams.get('placeId');
         const jobId = urlParams.get('jobId') || urlParams.get('gameInstanceId');
-
         const statusEl = document.getElementById('status');
         const joinBtn = document.getElementById('joinBtn');
 
@@ -97,12 +119,12 @@
             joinBtn.style.cursor = 'not-allowed';
         } else {
             statusEl.innerHTML = `Ready to join:<br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}`;
-            
+           
             joinBtn.onclick = function() {
-                // Try Roblox protocol first (best for desktop/mobile app)
+                // Primary: Roblox protocol (best experience)
                 window.location.href = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
-                
-                // Fallback to web join if protocol is blocked (after 2 seconds)
+               
+                // Fallback: web join after 2 seconds
                 setTimeout(() => {
                     window.location.href = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
                 }, 2000);
