@@ -144,6 +144,24 @@
         .link-box a:hover {
             text-decoration: underline;
         }
+        .success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 2px solid rgba(46, 204, 113, 0.4);
+            color: #2ecc71;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-width: 500px;
+        }
+        .error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 2px solid rgba(231, 76, 60, 0.4);
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-width: 500px;
+        }
         @media (max-width: 600px) {
             h1 { font-size: 2.4rem; }
             .logo { width: 110px; height: 110px; }
@@ -163,20 +181,22 @@
     <div class="instructions">
         <h3>📋 How to Join:</h3>
         <ol>
-            <li>Click "Web Join" button to join via browser</li>
-            <li>Or click "App Join" to open in Roblox app</li>
+            <li>Click "Join Via Browser" button to join via Roblox website</li>
+            <li>Or click "Join Via App" to open in Roblox desktop app</li>
             <li>Or copy the script below for executors</li>
         </ol>
     </div>
 
-    <button class="btn" id="webJoinBtn">🌐 Web Join (Browser)</button>
-    <button class="btn secondary" id="appJoinBtn">🎮 App Join (Roblox Client)</button>
+    <button class="btn" id="webJoinBtn">🌐 Join Via Browser</button>
+    <button class="btn secondary" id="appJoinBtn">🎮 Join Via App</button>
 
     <div id="status">Loading server information...</div>
 
+    <div id="resultMessage"></div>
+
     <div class="link-box">
         <h3>🔗 Direct Join Links:</h3>
-        <p><strong>Web Link:</strong> <a id="webLink" target="_blank">Loading...</a></p>
+        <p><strong>Browser Link:</strong> <a id="webLink" target="_blank">Loading...</a></p>
         <p><strong>App Link:</strong> <a id="appLink" target="_blank">Loading...</a></p>
     </div>
 
@@ -194,8 +214,13 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const placeId = urlParams.get('placeId') || '920587237';
-        const jobId = urlParams.get('jobId') || urlParams.get('gameInstanceId');
+        const placeId = urlParams.get('placeId');
+        const gameInstanceId = urlParams.get('gameInstanceId');
+        const jobId = urlParams.get('jobId');
+        
+        // Use gameInstanceId first, then jobId as fallback
+        const serverId = gameInstanceId || jobId;
+        
         const statusEl = document.getElementById('status');
         const webJoinBtn = document.getElementById('webJoinBtn');
         const appJoinBtn = document.getElementById('appJoinBtn');
@@ -203,122 +228,199 @@
         const copyBtn = document.getElementById('copyBtn');
         const webLink = document.getElementById('webLink');
         const appLink = document.getElementById('appLink');
+        const resultMessage = document.getElementById('resultMessage');
 
+        // Validate parameters
         if (!placeId) {
-            statusEl.innerHTML = '❌ Error: Missing placeId in URL!<br>Example: /joiner?placeId=920587237&gameInstanceId=your-server-id';
-            webJoinBtn.disabled = true;
-            appJoinBtn.disabled = true;
-        } else if (!jobId) {
-            statusEl.innerHTML = '❌ Error: Missing server ID in URL!<br>This page requires a specific server ID to join.<br><br>Example: /joiner?placeId=920587237&gameInstanceId=your-server-id';
-            webJoinBtn.disabled = true;
-            appJoinBtn.disabled = true;
-        } else {
-            statusEl.innerHTML = `✅ Server Found!<br><br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}<br><br>Click a button above to join the specific server.`;
-            
-            // Create URLs - Using the correct format from your example
-            const webJoinUrl = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${jobId}`;
-            const appJoinUrl = `roblox://placeId=${placeId}&gameInstanceId=${jobId}`;
-            const teleportScript = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${jobId}")`;
-            
-            // Set link texts
-            webLink.textContent = webJoinUrl;
-            webLink.href = webJoinUrl;
-            appLink.textContent = appJoinUrl;
-            appLink.href = appJoinUrl;
-            scriptContent.textContent = teleportScript;
-            
-            // Web Join button
-            webJoinBtn.onclick = function() {
-                statusEl.innerHTML = `🔄 Opening Roblox in browser...<br><br>You will be taken to Roblox's website to join the specific server.`;
-                window.open(webJoinUrl, '_blank');
-            };
-            
-            // App Join button
-            appJoinBtn.onclick = function() {
-                statusEl.innerHTML = `🔄 Opening Roblox app...<br><br>If the app doesn't open, use the web join button or copy the script.`;
-                
-                // Create hidden iframe to trigger Roblox protocol
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = appJoinUrl;
-                document.body.appendChild(iframe);
-                
-                // Remove iframe after a moment
-                setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    // Fallback to web after 2 seconds
-                    setTimeout(() => {
-                        if (confirm("Roblox app didn't open. Would you like to join via web instead?")) {
-                            window.open(webJoinUrl, '_blank');
-                        }
-                    }, 2000);
-                }, 1000);
-            };
-            
-            // Copy script button
-            copyBtn.onclick = function() {
-                navigator.clipboard.writeText(teleportScript).then(() => {
-                    const originalText = copyBtn.textContent;
-                    copyBtn.textContent = "✓ Copied!";
-                    copyBtn.style.background = "rgba(46, 204, 113, 0.3)";
-                    copyBtn.style.color = "#2ecc71";
-                    
-                    setTimeout(() => {
-                        copyBtn.textContent = originalText;
-                        copyBtn.style.background = "";
-                        copyBtn.style.color = "";
-                    }, 2000);
-                });
-            };
-            
-            // Auto-copy script to clipboard for convenience
-            setTimeout(() => {
-                if (navigator.clipboard) {
-                    navigator.clipboard.writeText(teleportScript).then(() => {
-                        console.log("Script auto-copied to clipboard");
-                    });
-                }
-            }, 1000);
+            showError("❌ Missing placeId parameter!<br>Example: /joiner?placeId=920587237&gameInstanceId=your-server-id");
+            disableButtons();
+            return;
         }
         
-        // If no jobId but we have placeId, show a different message
-        if (placeId && !jobId) {
-            const webJoinUrl = `https://www.roblox.com/games/${placeId}`;
-            const appJoinUrl = `roblox://placeId=${placeId}`;
-            const teleportScript = `game:GetService("TeleportService"):Teleport(${placeId})`;
+        if (!serverId) {
+            showError("❌ Missing server ID (gameInstanceId or jobId)!<br>This page requires a specific server ID to join.<br><br>Example: /joiner?placeId=920587237&gameInstanceId=your-server-id");
+            disableButtons();
+            return;
+        }
+        
+        // Validate UUID format (gameInstanceId should be a UUID)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(serverId)) {
+            showWarning(`⚠️ Server ID doesn't look like a valid UUID.<br>It should be in format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx<br><br>Your ID: ${serverId}`);
+        }
+        
+        // Display server info
+        statusEl.innerHTML = `✅ Server Found!<br><br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${serverId}<br><br>Click a button above to join the specific server.`;
+        
+        // Create the correct Roblox URLs
+        // Method 1: Direct browser join (using the correct Roblox web format)
+        const webJoinUrl = `https://www.roblox.com/games/${placeId}?gameInstanceId=${serverId}`;
+        
+        // Method 2: Alternative browser join
+        const webJoinUrl2 = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${serverId}`;
+        
+        // Method 3: App join protocol
+        const appJoinUrl = `roblox://placeId=${placeId}&gameInstanceId=${serverId}`;
+        
+        // Method 4: Alternative app join protocol
+        const appJoinUrl2 = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${serverId}`;
+        
+        // Teleport script
+        const teleportScript = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${serverId}")`;
+        
+        // Set link texts
+        webLink.textContent = webJoinUrl;
+        webLink.href = webJoinUrl;
+        appLink.textContent = appJoinUrl;
+        appLink.href = appJoinUrl;
+        scriptContent.textContent = teleportScript;
+        
+        // Web Join button
+        webJoinBtn.onclick = function() {
+            showStatus("🔄 Opening Roblox in browser...");
             
-            webLink.textContent = webJoinUrl;
-            webLink.href = webJoinUrl;
-            appLink.textContent = appJoinUrl;
-            appLink.href = appJoinUrl;
-            scriptContent.textContent = teleportScript;
+            // Try multiple browser join methods
+            let attempt = 0;
+            const maxAttempts = 2;
             
-            webJoinBtn.onclick = function() {
-                window.open(webJoinUrl, '_blank');
-            };
+            function tryBrowserJoin() {
+                attempt++;
+                if (attempt === 1) {
+                    // First attempt: Main web URL
+                    window.open(webJoinUrl, '_blank');
+                    setTimeout(() => {
+                        if (attempt < maxAttempts) {
+                            tryBrowserJoin();
+                        }
+                    }, 500);
+                } else if (attempt === 2) {
+                    // Second attempt: Alternative web URL
+                    window.open(webJoinUrl2, '_blank');
+                }
+            }
             
-            appJoinBtn.onclick = function() {
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.src = appJoinUrl;
-                document.body.appendChild(iframe);
+            tryBrowserJoin();
+            
+            // Show success message
+            setTimeout(() => {
+                showSuccess("✅ Opening Roblox website...<br>If it doesn't open automatically, click the browser link above.");
+            }, 1000);
+        };
+        
+        // App Join button
+        appJoinBtn.onclick = function() {
+            showStatus("🔄 Opening Roblox app...");
+            
+            // Try multiple app join methods
+            let attempt = 0;
+            const maxAttempts = 2;
+            
+            function tryAppJoin() {
+                attempt++;
+                
+                if (attempt === 1) {
+                    // First attempt: Direct protocol
+                    try {
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = appJoinUrl;
+                        document.body.appendChild(iframe);
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                            if (attempt < maxAttempts) {
+                                tryAppJoin();
+                            } else {
+                                // If both app attempts fail, offer browser join
+                                setTimeout(() => {
+                                    if (confirm("Roblox app didn't open. Would you like to join via browser instead?")) {
+                                        window.open(webJoinUrl, '_blank');
+                                    }
+                                }, 2000);
+                            }
+                        }, 1000);
+                    } catch (error) {
+                        console.error("App join failed:", error);
+                        if (attempt < maxAttempts) {
+                            tryAppJoin();
+                        }
+                    }
+                } else if (attempt === 2) {
+                    // Second attempt: Alternative protocol
+                    try {
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = appJoinUrl2;
+                        document.body.appendChild(iframe);
+                        
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                        }, 1000);
+                    } catch (error) {
+                        console.error("Alternative app join failed:", error);
+                    }
+                }
+            }
+            
+            tryAppJoin();
+        };
+        
+        // Copy script button
+        copyBtn.onclick = function() {
+            navigator.clipboard.writeText(teleportScript).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = "✓ Copied!";
+                copyBtn.style.background = "rgba(46, 204, 113, 0.3)";
+                copyBtn.style.color = "#2ecc71";
                 
                 setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    setTimeout(() => {
-                        if (confirm("Roblox app didn't open. Would you like to join via web instead?")) {
-                            window.open(webJoinUrl, '_blank');
-                        }
-                    }, 2000);
-                }, 1000);
-            };
-            
-            copyBtn.onclick = function() {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = "";
+                    copyBtn.style.color = "";
+                }, 2000);
+                
+                showSuccess("✅ Script copied to clipboard!");
+            }).catch(err => {
+                showError("❌ Failed to copy script: " + err);
+            });
+        };
+        
+        // Auto-copy script to clipboard for convenience
+        setTimeout(() => {
+            if (navigator.clipboard) {
                 navigator.clipboard.writeText(teleportScript).then(() => {
-                    copyBtn.textContent = "✓ Copied!";
-                    setTimeout(() => copyBtn.textContent = "📋 Copy Script", 2000);
+                    console.log("Script auto-copied to clipboard");
                 });
-            };
+            }
+        }, 1000);
+        
+        // Helper functions
+        function showError(message) {
+            resultMessage.className = "error";
+            resultMessage.innerHTML = message;
+        }
+        
+        function showWarning(message) {
+            resultMessage.className = "error";
+            resultMessage.innerHTML = message;
+        }
+        
+        function showSuccess(message) {
+            resultMessage.className = "success";
+            resultMessage.innerHTML = message;
+        }
+        
+        function showStatus(message) {
+            statusEl.innerHTML = message;
+        }
+        
+        function disableButtons() {
+            webJoinBtn.disabled = true;
+            appJoinBtn.disabled = true;
+            webJoinBtn.style.opacity = "0.5";
+            appJoinBtn.style.opacity = "0.5";
+            webJoinBtn.style.cursor = "not-allowed";
+            appJoinBtn.style.cursor = "not-allowed";
         }
         
         // Click-to-copy for script box
@@ -329,8 +431,13 @@
                 setTimeout(() => {
                     copyBtn.textContent = originalText;
                 }, 2000);
+                showSuccess("✅ Script copied to clipboard!");
             });
         };
+        
+        // Also update the Lua script to use the correct format
+        console.log("To use this in your Lua script, use:");
+        console.log(`local joinUrl = "https://123-nu-three.vercel.app/joiner?placeId=" .. game.PlaceId .. "&gameInstanceId=" .. game.JobId`);
     </script>
 </body>
 </html>
