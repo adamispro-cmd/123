@@ -70,6 +70,7 @@
             border-radius: 14px;
             max-width: 90%;
             color: #d4c2ff;
+            line-height: 1.6;
         }
         .brand {
             margin-top: 2.5rem;
@@ -77,9 +78,47 @@
             opacity: 0.6;
             color: #b080ff;
         }
-        .brand a {
-            color: #c090ff;
-            text-decoration: none;
+        .copy-btn {
+            background: rgba(180, 100, 255, 0.2);
+            color: #d0b8ff;
+            border: 1px solid rgba(176, 100, 255, 0.4);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            background: rgba(180, 100, 255, 0.3);
+        }
+        .info-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(180, 100, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            max-width: 500px;
+            text-align: left;
+        }
+        .info-box h3 {
+            color: #b064ff;
+            margin-bottom: 8px;
+        }
+        .instructions {
+            text-align: left;
+            max-width: 500px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
         }
         @media (max-width: 600px) {
             h1 { font-size: 2.4rem; }
@@ -97,9 +136,26 @@
     <h1>Rayz Hub</h1>
     <p class="subtitle">Instant Adopt Me Server Joiner</p>
 
+    <div class="instructions">
+        <h3>📋 How to Join:</h3>
+        <ol>
+            <li>Click "Join Server Now" button</li>
+            <li>If Roblox doesn't open automatically, copy the script below</li>
+            <li>Paste it in Roblox Studio's command line or your executor</li>
+        </ol>
+    </div>
+
     <button class="btn" id="joinBtn">Join Server Now 🚀</button>
 
-    <div id="status">Loading parameters...</div>
+    <div id="status">Loading server information...</div>
+
+    <div class="info-box">
+        <h3>📜 Manual Join Script (Copy if auto-join fails):</h3>
+        <div id="scriptContent" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin: 10px 0;">
+            Loading script...
+        </div>
+        <button class="copy-btn" id="copyBtn">Copy Script 📋</button>
+    </div>
 
     <div class="brand">
         made by rayz hub • we just lowkey better than fucking lynx team of skidder and nggers get better 9 year olds HAHA 🤡💀💀
@@ -107,27 +163,142 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const placeId = urlParams.get('placeId');
+        const placeId = urlParams.get('placeId') || '920587237'; // Default Adopt Me place ID
         const jobId = urlParams.get('jobId') || urlParams.get('gameInstanceId');
         const statusEl = document.getElementById('status');
         const joinBtn = document.getElementById('joinBtn');
+        const scriptContent = document.getElementById('scriptContent');
+        const copyBtn = document.getElementById('copyBtn');
 
-        if (!placeId || !jobId) {
-            statusEl.innerHTML = 'Error: Missing placeId or jobId in URL!<br>Example: ?placeId=494896&jobId=your-server-id';
+        if (!placeId) {
+            statusEl.innerHTML = 'Error: Missing placeId in URL!<br>Example: ?placeId=920587237&jobId=your-server-id<br><br>Using default Adopt Me place ID.';
+        }
+
+        if (!jobId) {
+            statusEl.innerHTML = 'Error: Missing jobId (server ID) in URL!<br>This page requires a specific server ID to join.<br><br>Example: ?placeId=920587237&jobId=your-server-id';
             joinBtn.disabled = true;
             joinBtn.style.opacity = '0.5';
             joinBtn.style.cursor = 'not-allowed';
         } else {
-            statusEl.innerHTML = `Ready to join:<br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}`;
-           
+            statusEl.innerHTML = `✅ Server Found!<br><br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}<br><br>Click the button above to join the server instantly.`;
+            
+            // Create the teleport script
+            const teleportScript = `-- Rayz Hub Teleport Script
+local TeleportService = game:GetService("TeleportService")
+
+-- Try to teleport to the specific server
+local success, errorMsg = pcall(function()
+    TeleportService:TeleportToPlaceInstance(${placeId}, "${jobId}")
+end)
+
+if not success then
+    warn("Teleport failed:", errorMsg)
+    -- Alternative method
+    game:GetService("TeleportService"):Teleport(${placeId})
+end`;
+            
+            scriptContent.textContent = teleportScript;
+            
+            // Copy script button
+            copyBtn.onclick = function() {
+                navigator.clipboard.writeText(teleportScript).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = "✓ Copied!";
+                    copyBtn.style.background = "rgba(46, 204, 113, 0.3)";
+                    copyBtn.style.color = "#2ecc71";
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = "";
+                        copyBtn.style.color = "";
+                    }, 2000);
+                });
+            };
+            
+            // Join button functionality
             joinBtn.onclick = function() {
-                // Primary: Roblox protocol (best experience)
-                window.location.href = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
-               
-                // Fallback: web join after 2 seconds
+                // Try multiple methods to ensure it works
+                
+                // Method 1: Direct Roblox protocol (most reliable for installed app)
+                const robloxUrl = `roblox://placeId=${placeId}&gameInstanceId=${jobId}`;
+                
+                // Method 2: Web version with proper parameters
+                const webUrl = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${jobId}`;
+                
+                // Method 3: Alternative web format
+                const altWebUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
+                
+                statusEl.innerHTML = `🔄 Attempting to join server...<br><br>If Roblox doesn't open automatically:<br>1. Copy the script above<br>2. Paste in Roblox Studio command line<br>3. Press Enter`;
+                
+                // Try opening in app first
+                try {
+                    // Create a hidden iframe to trigger the protocol
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = robloxUrl;
+                    document.body.appendChild(iframe);
+                    
+                    // Remove iframe after a moment
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                    
+                    // Also try direct window location as backup
+                    setTimeout(() => {
+                        window.location.href = webUrl;
+                    }, 500);
+                    
+                } catch (error) {
+                    // Fallback to web version
+                    setTimeout(() => {
+                        window.location.href = altWebUrl;
+                    }, 100);
+                }
+                
+                // Also provide the script as a fallback
+                joinBtn.disabled = true;
+                joinBtn.textContent = "Joining...";
+                joinBtn.style.opacity = "0.7";
+                
+                // Reset button after 5 seconds
                 setTimeout(() => {
-                    window.location.href = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
-                }, 2000);
+                    joinBtn.disabled = false;
+                    joinBtn.textContent = "Join Server Now 🚀";
+                    joinBtn.style.opacity = "1";
+                }, 5000);
+            };
+        }
+        
+        // If no jobId but we have placeId, show a different message
+        if (placeId && !jobId) {
+            scriptContent.textContent = `-- Join Adopt Me (No specific server)
+game:GetService("TeleportService"):Teleport(${placeId})`;
+            
+            copyBtn.onclick = function() {
+                navigator.clipboard.writeText(scriptContent.textContent).then(() => {
+                    copyBtn.textContent = "✓ Copied!";
+                    setTimeout(() => copyBtn.textContent = "Copy Script 📋", 2000);
+                });
+            };
+            
+            joinBtn.onclick = function() {
+                // Just join the game, not a specific server
+                const robloxUrl = `roblox://placeId=${placeId}`;
+                const webUrl = `https://www.roblox.com/games/${placeId}`;
+                
+                try {
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = robloxUrl;
+                    document.body.appendChild(iframe);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                        window.location.href = webUrl;
+                    }, 500);
+                } catch (error) {
+                    window.location.href = webUrl;
+                }
             };
         }
     </script>
