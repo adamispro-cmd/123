@@ -187,15 +187,7 @@
 local TeleportService = game:GetService("TeleportService")
 
 -- Try to teleport to the specific server
-local success, errorMsg = pcall(function()
-    TeleportService:TeleportToPlaceInstance(${placeId}, "${jobId}")
-end)
-
-if not success then
-    warn("Teleport failed:", errorMsg)
-    -- Alternative method
-    game:GetService("TeleportService"):Teleport(${placeId})
-end`;
+TeleportService:TeleportToPlaceInstance(${placeId}, "${jobId}")`;
             
             scriptContent.textContent = teleportScript;
             
@@ -219,41 +211,77 @@ end`;
             joinBtn.onclick = function() {
                 // Try multiple methods to ensure it works
                 
-                // Method 1: Direct Roblox protocol (most reliable for installed app)
+                // Method 1: Direct Roblox protocol with gameInstanceId (CORRECT FORMAT)
                 const robloxUrl = `roblox://placeId=${placeId}&gameInstanceId=${jobId}`;
                 
-                // Method 2: Web version with proper parameters
-                const webUrl = `https://www.roblox.com/games/start?placeId=${placeId}&gameInstanceId=${jobId}`;
+                // Method 2: Direct Roblox protocol for experiences start
+                const robloxUrl2 = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
                 
-                // Method 3: Alternative web format
-                const altWebUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
+                // Method 3: Web version with placeInstanceId parameter
+                const webUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
                 
-                statusEl.innerHTML = `🔄 Attempting to join server...<br><br>If Roblox doesn't open automatically:<br>1. Copy the script above<br>2. Paste in Roblox Studio command line<br>3. Press Enter`;
+                statusEl.innerHTML = `🔄 Attempting to join specific server...<br><br>If Roblox doesn't open automatically:<br>1. Copy the script above<br>2. Paste in Roblox Studio command line<br>3. Press Enter`;
                 
-                // Try opening in app first
-                try {
-                    // Create a hidden iframe to trigger the protocol
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = robloxUrl;
-                    document.body.appendChild(iframe);
+                // Create multiple attempts to open Roblox
+                let attempts = 0;
+                const maxAttempts = 3;
+                
+                function tryOpenRoblox() {
+                    attempts++;
                     
-                    // Remove iframe after a moment
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                    }, 1000);
-                    
-                    // Also try direct window location as backup
-                    setTimeout(() => {
+                    if (attempts === 1) {
+                        // First attempt: Direct protocol with gameInstanceId
+                        try {
+                            const iframe = document.createElement('iframe');
+                            iframe.style.display = 'none';
+                            iframe.src = robloxUrl;
+                            document.body.appendChild(iframe);
+                            
+                            setTimeout(() => {
+                                document.body.removeChild(iframe);
+                                if (attempts < maxAttempts) {
+                                    tryOpenRoblox();
+                                }
+                            }, 1000);
+                        } catch (error) {
+                            console.error("Method 1 failed:", error);
+                            if (attempts < maxAttempts) {
+                                tryOpenRoblox();
+                            }
+                        }
+                    } else if (attempts === 2) {
+                        // Second attempt: Experiences start protocol
+                        try {
+                            const iframe = document.createElement('iframe');
+                            iframe.style.display = 'none';
+                            iframe.src = robloxUrl2;
+                            document.body.appendChild(iframe);
+                            
+                            setTimeout(() => {
+                                document.body.removeChild(iframe);
+                                if (attempts < maxAttempts) {
+                                    tryOpenRoblox();
+                                }
+                            }, 1000);
+                        } catch (error) {
+                            console.error("Method 2 failed:", error);
+                            if (attempts < maxAttempts) {
+                                tryOpenRoblox();
+                            }
+                        }
+                    } else if (attempts === 3) {
+                        // Third attempt: Web version as fallback
                         window.location.href = webUrl;
-                    }, 500);
-                    
-                } catch (error) {
-                    // Fallback to web version
-                    setTimeout(() => {
-                        window.location.href = altWebUrl;
-                    }, 100);
+                    }
                 }
+                
+                // Also try direct window location change
+                setTimeout(() => {
+                    window.location.href = robloxUrl;
+                }, 100);
+                
+                // Start the attempt sequence
+                tryOpenRoblox();
                 
                 // Also provide the script as a fallback
                 joinBtn.disabled = true;
