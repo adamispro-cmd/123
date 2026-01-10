@@ -61,6 +61,13 @@
             box-shadow: 0 14px 40px rgba(176, 100, 255, 0.7);
             background: #9b4eff;
         }
+        .btn.secondary {
+            background: rgba(180, 100, 255, 0.2);
+            border: 2px solid rgba(180, 100, 255, 0.4);
+        }
+        .btn.secondary:hover {
+            background: rgba(180, 100, 255, 0.3);
+        }
         #status {
             font-size: 1.1rem;
             margin: 1.6rem 0;
@@ -120,14 +127,22 @@
         .instructions li {
             margin-bottom: 8px;
         }
-        .warning {
-            background: rgba(255, 100, 100, 0.2);
-            border: 1px solid rgba(255, 100, 100, 0.4);
-            color: #ffb8b8;
-            padding: 10px;
-            border-radius: 8px;
+        .link-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(180, 100, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
             margin: 15px 0;
             max-width: 500px;
+            word-break: break-all;
+        }
+        .link-box a {
+            color: #b064ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .link-box a:hover {
+            text-decoration: underline;
         }
         @media (max-width: 600px) {
             h1 { font-size: 2.4rem; }
@@ -148,34 +163,29 @@
     <div class="instructions">
         <h3>📋 How to Join:</h3>
         <ol>
-            <li>Copy the script below</li>
-            <li>Open Roblox and open the Developer Console (F9)</li>
-            <li>Paste the script in the command line</li>
-            <li>Press Enter to execute</li>
+            <li>Click "Web Join" button to join via browser</li>
+            <li>Or click "App Join" to open in Roblox app</li>
+            <li>Or copy the script below for executors</li>
         </ol>
     </div>
 
-    <div class="warning">
-        ⚠️ <strong>Important:</strong> You must execute the script inside Roblox to join this specific server. 
-        Web browsers cannot directly join specific Roblox server instances.
-    </div>
+    <button class="btn" id="webJoinBtn">🌐 Web Join (Browser)</button>
+    <button class="btn secondary" id="appJoinBtn">🎮 App Join (Roblox Client)</button>
 
     <div id="status">Loading server information...</div>
 
-    <div class="info-box">
-        <h3>📜 Rayz Hub Join Script:</h3>
-        <div id="scriptContent" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin: 10px 0; white-space: pre-wrap;">
-            Loading script...
-        </div>
-        <button class="copy-btn" id="copyBtn">📋 Copy Script to Clipboard</button>
+    <div class="link-box">
+        <h3>🔗 Direct Join Links:</h3>
+        <p><strong>Web Link:</strong> <a id="webLink" target="_blank">Loading...</a></p>
+        <p><strong>App Link:</strong> <a id="appLink" target="_blank">Loading...</a></p>
     </div>
 
     <div class="info-box">
-        <h3>🚀 Quick Join (For Executor Users):</h3>
-        <div id="executorScript" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin: 10px 0; white-space: pre-wrap;">
-            Loading executor script...
+        <h3>📜 Manual Join Script (For Executors):</h3>
+        <div id="scriptContent" style="background: rgba(0,0,0,0.4); padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin: 10px 0; white-space: pre-wrap;">
+            Loading script...
         </div>
-        <button class="copy-btn" id="copyBtn2">📋 Copy for Executor</button>
+        <button class="copy-btn" id="copyBtn">📋 Copy Script</button>
     </div>
 
     <div class="brand">
@@ -187,26 +197,63 @@
         const placeId = urlParams.get('placeId') || '920587237';
         const jobId = urlParams.get('jobId') || urlParams.get('gameInstanceId');
         const statusEl = document.getElementById('status');
+        const webJoinBtn = document.getElementById('webJoinBtn');
+        const appJoinBtn = document.getElementById('appJoinBtn');
         const scriptContent = document.getElementById('scriptContent');
-        const executorScript = document.getElementById('executorScript');
         const copyBtn = document.getElementById('copyBtn');
-        const copyBtn2 = document.getElementById('copyBtn2');
+        const webLink = document.getElementById('webLink');
+        const appLink = document.getElementById('appLink');
 
         if (!placeId) {
             statusEl.innerHTML = '❌ Error: Missing placeId in URL!<br>Example: ?placeId=920587237&jobId=your-server-id';
+            webJoinBtn.disabled = true;
+            appJoinBtn.disabled = true;
         } else if (!jobId) {
             statusEl.innerHTML = '❌ Error: Missing jobId (server ID) in URL!<br>This page requires a specific server ID to join.<br><br>Example: ?placeId=920587237&jobId=your-server-id';
+            webJoinBtn.disabled = true;
+            appJoinBtn.disabled = true;
         } else {
-            statusEl.innerHTML = `✅ Server Found!<br><br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}<br><br>Copy the script below and execute it in Roblox.`;
+            statusEl.innerHTML = `✅ Server Found!<br><br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}<br><br>Click a button above to join the specific server.`;
             
-            // Create the teleport script (EXACTLY matches your Lua code)
+            // Create URLs
+            const webJoinUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
+            const appJoinUrl = `roblox://placeId=${placeId}&gameInstanceId=${jobId}`;
             const teleportScript = `game:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${jobId}")`;
             
-            // Create the executor script with loadstring for executors
-            const executorTeleportScript = `loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()\n-- Then use:\nteletoport ${placeId} ${jobId}\n\n-- OR use this direct command:\ngame:GetService("TeleportService"):TeleportToPlaceInstance(${placeId}, "${jobId}")`;
-            
+            // Set link texts
+            webLink.textContent = webJoinUrl;
+            webLink.href = webJoinUrl;
+            appLink.textContent = appJoinUrl;
+            appLink.href = appJoinUrl;
             scriptContent.textContent = teleportScript;
-            executorScript.textContent = executorTeleportScript;
+            
+            // Web Join button
+            webJoinBtn.onclick = function() {
+                statusEl.innerHTML = `🔄 Opening Roblox in browser...<br><br>You will be taken to Roblox's website to join the specific server.`;
+                window.open(webJoinUrl, '_blank');
+            };
+            
+            // App Join button
+            appJoinBtn.onclick = function() {
+                statusEl.innerHTML = `🔄 Opening Roblox app...<br><br>If the app doesn't open, use the web join button or copy the script.`;
+                
+                // Create hidden iframe to trigger Roblox protocol
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = appJoinUrl;
+                document.body.appendChild(iframe);
+                
+                // Remove iframe after a moment
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    // Fallback to web after 2 seconds
+                    setTimeout(() => {
+                        if (confirm("Roblox app didn't open. Would you like to join via web instead?")) {
+                            window.open(webJoinUrl, '_blank');
+                        }
+                    }, 2000);
+                }, 1000);
+            };
             
             // Copy script button
             copyBtn.onclick = function() {
@@ -224,23 +271,7 @@
                 });
             };
             
-            // Copy executor script button
-            copyBtn2.onclick = function() {
-                navigator.clipboard.writeText(executorTeleportScript).then(() => {
-                    const originalText = copyBtn2.textContent;
-                    copyBtn2.textContent = "✓ Copied!";
-                    copyBtn2.style.background = "rgba(46, 204, 113, 0.3)";
-                    copyBtn2.style.color = "#2ecc71";
-                    
-                    setTimeout(() => {
-                        copyBtn2.textContent = originalText;
-                        copyBtn2.style.background = "";
-                        copyBtn2.style.color = "";
-                    }, 2000);
-                });
-            };
-            
-            // Try to automatically copy to clipboard for convenience
+            // Auto-copy script to clipboard for convenience
             setTimeout(() => {
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(teleportScript).then(() => {
@@ -252,41 +283,51 @@
         
         // If no jobId but we have placeId, show a different message
         if (placeId && !jobId) {
-            scriptContent.textContent = `game:GetService("TeleportService"):Teleport(${placeId})`;
-            executorScript.textContent = `loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()\n-- Then use:\nteletoport ${placeId}\n\n-- OR use this direct command:\ngame:GetService("TeleportService"):Teleport(${placeId})`;
+            const webJoinUrl = `https://www.roblox.com/games/${placeId}`;
+            const appJoinUrl = `roblox://placeId=${placeId}`;
+            const teleportScript = `game:GetService("TeleportService"):Teleport(${placeId})`;
             
-            copyBtn.onclick = function() {
-                navigator.clipboard.writeText(scriptContent.textContent).then(() => {
-                    copyBtn.textContent = "✓ Copied!";
-                    setTimeout(() => copyBtn.textContent = "📋 Copy Script to Clipboard", 2000);
-                });
+            webLink.textContent = webJoinUrl;
+            webLink.href = webJoinUrl;
+            appLink.textContent = appJoinUrl;
+            appLink.href = appJoinUrl;
+            scriptContent.textContent = teleportScript;
+            
+            webJoinBtn.onclick = function() {
+                window.open(webJoinUrl, '_blank');
             };
             
-            copyBtn2.onclick = function() {
-                navigator.clipboard.writeText(executorScript.textContent).then(() => {
-                    copyBtn2.textContent = "✓ Copied!";
-                    setTimeout(() => copyBtn2.textContent = "📋 Copy for Executor", 2000);
+            appJoinBtn.onclick = function() {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = appJoinUrl;
+                document.body.appendChild(iframe);
+                
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    setTimeout(() => {
+                        if (confirm("Roblox app didn't open. Would you like to join via web instead?")) {
+                            window.open(webJoinUrl, '_blank');
+                        }
+                    }, 2000);
+                }, 1000);
+            };
+            
+            copyBtn.onclick = function() {
+                navigator.clipboard.writeText(teleportScript).then(() => {
+                    copyBtn.textContent = "✓ Copied!";
+                    setTimeout(() => copyBtn.textContent = "📋 Copy Script", 2000);
                 });
             };
         }
         
-        // Add click-to-copy for the script boxes
+        // Click-to-copy for script box
         scriptContent.onclick = function() {
             navigator.clipboard.writeText(scriptContent.textContent).then(() => {
                 const originalText = copyBtn.textContent;
                 copyBtn.textContent = "✓ Copied!";
                 setTimeout(() => {
                     copyBtn.textContent = originalText;
-                }, 2000);
-            });
-        };
-        
-        executorScript.onclick = function() {
-            navigator.clipboard.writeText(executorScript.textContent).then(() => {
-                const originalText = copyBtn2.textContent;
-                copyBtn2.textContent = "✓ Copied!";
-                setTimeout(() => {
-                    copyBtn2.textContent = originalText;
                 }, 2000);
             });
         };
