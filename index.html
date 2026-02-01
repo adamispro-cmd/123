@@ -91,18 +91,24 @@
         if (!placeId || !jobId) {
             statusEl.innerHTML = 'Error: Missing placeId or jobId in URL!<br>Example: ?placeId=494896&jobId=your-server-id';
         } else {
+            // Show joining message
             statusEl.innerHTML = `Joining now:<br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}<br><br>Launching Roblox...`;
 
-            
+            // === TRACK THE CLICK / VISIT HERE ===
+            let clickCount = localStorage.getItem('rayzJoinClicks') || '0';
+            clickCount = parseInt(clickCount, 10) + 1;
+            localStorage.setItem('rayzJoinClicks', clickCount);
+            console.log(`Total tracked joins (this browser): ${clickCount}`); // for your debugging
+
+            // Immediately attempt Roblox protocol launch (instant if app installed)
             const protocolUrl = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
             window.location.href = protocolUrl;
 
-            
+            // Fallback to web join after short delay (if protocol didn't trigger)
             setTimeout(() => {
-                
-                statusEl.innerHTML += '<br><br>Protocol launch failed? Trying web fallback...';
+                statusEl.innerHTML += '<br><br>Protocol failed? Trying web fallback...';
                 window.location.href = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
-            }, 1800); 
+            }, 1800);  // 1.8 seconds
         }
     </script>
 </body>
