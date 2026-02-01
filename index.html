@@ -92,34 +92,23 @@
             statusEl.style.background = 'rgba(255, 80, 80, 0.2)';
             statusEl.style.borderColor = 'rgba(255, 80, 80, 0.4)';
             document.querySelector('.subtitle').textContent = 'Something went wrong 😕';
-            return; 
+            return; // Stop here
         }
 
         statusEl.innerHTML = `Connecting to server...<br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}`;
 
-       
+        
         function attemptJoin() {
             
-            const protocolUrl = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
-            window.location.href = protocolUrl;
+            window.location.href = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
 
             
             setTimeout(() => {
-                statusEl.innerHTML += '<br><br>Trying web fallback...';
-                const fallbackUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
-                window.location.href = fallbackUrl;
-            }, 2500);
+                window.location.href = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
+            }, 2000);
         }
 
-        
         attemptJoin();
-
-       
-     setTimeout(() => {
-            if (statusEl.innerHTML.includes('Connecting')) {
-                statusEl.innerHTML += '<br><br>If nothing happens, make sure Roblox is installed and try again!';
-            }
-        }, 4000);
     </script>
 </body>
 </html>
