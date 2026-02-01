@@ -43,24 +43,6 @@
             opacity: 0.9;
             color: #d0b8ff;
         }
-        .btn {
-            background: #b064ff;
-            color: white;
-            border: none;
-            padding: 16px 48px;
-            font-size: 1.35rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.35s ease;
-            box-shadow: 0 8px 30px rgba(176, 100, 255, 0.5);
-            margin: 1.8rem 0;
-        }
-        .btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 14px 40px rgba(176, 100, 255, 0.7);
-            background: #9b4eff;
-        }
         #status {
             font-size: 1.1rem;
             margin: 1.6rem 0;
@@ -84,23 +66,17 @@
         @media (max-width: 600px) {
             h1 { font-size: 2.4rem; }
             .logo { width: 110px; height: 110px; }
-            .btn { padding: 14px 36px; font-size: 1.2rem; }
         }
     </style>
 </head>
 <body>
     <div class="logo-container">
-        <img src="https://rayzhubb.vercel.app/pngs/logo.png" 
+        <img src="https://rayzhubb.vercel.app/pngs/logo.png"
              alt="Rayz Hub Logo" class="logo">
     </div>
-
     <h1>Rayz Hub</h1>
-    <p class="subtitle">rayz hub join</p>
-
-    <button class="btn" id="joinBtn">Join Server Now 🚀</button>
-
+    <p class="subtitle">Instantly joining your server... 🚀</p>
     <div id="status">Loading parameters...</div>
-
     <div class="brand">
         made by rayz hub • we just lowkey better than fucking lynx get better 9 year olds HAHA
     </div>
@@ -110,26 +86,40 @@
         const placeId = urlParams.get('placeId');
         const jobId = urlParams.get('jobId') || urlParams.get('gameInstanceId');
         const statusEl = document.getElementById('status');
-        const joinBtn = document.getElementById('joinBtn');
 
         if (!placeId || !jobId) {
             statusEl.innerHTML = 'Error: Missing placeId or jobId in URL!<br>Example: ?placeId=494896&jobId=your-server-id';
-            joinBtn.disabled = true;
-            joinBtn.style.opacity = '0.5';
-            joinBtn.style.cursor = 'not-allowed';
-        } else {
-            statusEl.innerHTML = `Ready to join:<br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}`;
-           
-            joinBtn.onclick = function() {
-                // Primary: Roblox protocol (best experience)
-                window.location.href = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
-               
-                // Fallback: web join after 2 seconds
-                setTimeout(() => {
-                    window.location.href = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
-                }, 2000);
-            };
+            statusEl.style.background = 'rgba(255, 80, 80, 0.2)';
+            statusEl.style.borderColor = 'rgba(255, 80, 80, 0.4)';
+            document.querySelector('.subtitle').textContent = 'Something went wrong 😕';
+            return; 
         }
+
+        statusEl.innerHTML = `Connecting to server...<br><strong>Place ID:</strong> ${placeId}<br><strong>Server ID:</strong> ${jobId}`;
+
+       
+        function attemptJoin() {
+            
+            const protocolUrl = `roblox://experiences/start?placeId=${placeId}&gameInstanceId=${jobId}`;
+            window.location.href = protocolUrl;
+
+            
+            setTimeout(() => {
+                statusEl.innerHTML += '<br><br>Trying web fallback...';
+                const fallbackUrl = `https://www.roblox.com/games/${placeId}?placeInstanceId=${jobId}`;
+                window.location.href = fallbackUrl;
+            }, 2500);
+        }
+
+        
+        attemptJoin();
+
+       
+     setTimeout(() => {
+            if (statusEl.innerHTML.includes('Connecting')) {
+                statusEl.innerHTML += '<br><br>If nothing happens, make sure Roblox is installed and try again!';
+            }
+        }, 4000);
     </script>
 </body>
 </html>
